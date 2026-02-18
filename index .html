@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>اصفهان نصف جهان - بازی تعاملی</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #F0D080;
+    --teal: #1A6B6B;
+    --teal-dark: #0D3D3D;
+    --cream: #F5EDD8;
+    --terracotta: #C25B2A;
+    --lapis: #1E3A8A;
+    --dark: #0A1A1A;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Vazirmatn', sans-serif;
+    background: var(--dark);
+    color: var(--cream);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Geometric pattern background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(201,168,76,0.08) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(26,107,107,0.1) 0%, transparent 50%),
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A84C' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    padding: 40px 0 30px;
+    position: relative;
+  }
+
+  .ornament {
+    color: var(--gold);
+    font-size: 1.5rem;
+    letter-spacing: 8px;
+    opacity: 0.6;
+  }
+
+  header h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, #8B6914 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 10px 0 6px;
+    line-height: 1.2;
+  }
+
+  header .subtitle {
+    color: var(--teal);
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+  }
+
+  /* Score bar */
+  .scorebar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 16px;
+    padding: 14px 24px;
+    margin-bottom: 24px;
+    backdrop-filter: blur(10px);
+  }
+
+  .score-item {
+    text-align: center;
+  }
+
+  .score-label {
+    font-size: 0.7rem;
+    color: var(--gold);
+    letter-spacing: 1px;
+    opacity: 0.7;
+  }
+
+  .score-value {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--gold-light);
+  }
+
+  /* Sections */
+  .section {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .section.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Menu */
+  .menu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 10px;
+  }
+
+  .menu-card {
+    background: linear-gradient(135deg, rgba(26,107,107,0.15), rgba(13,61,61,0.3));
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 20px;
+    padding: 28px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .menu-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(201,168,76,0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .menu-card:hover::before { opacity: 1; }
+  .menu-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(201,168,76,0.2);
+  }
+
+  .menu-card .icon {
+    font-size: 2.8rem;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .menu-card h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--gold-light);
+    margin-bottom: 6px;
+  }
+
+  .menu-card p {
+    font-size: 0.78rem;
+    color: rgba(245,237,216,0.55);
+    line-height: 1.6;
+  }
+
+  /* Back button */
+  .back-btn {
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--gold);
+    padding: 8px 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+    transition: all 0.2s;
+  }
+
+  .back-btn:hover {
+    background: rgba(201,168,76,0.1);
+    border-color: var(--gold);
+  }
+
+  /* Quiz section */
+  .quiz-progress {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+  }
+
+  .progress-dot {
+    flex: 1;
+    height: 5px;
+    border-radius: 3px;
+    background: rgba(201,168,76,0.15);
+    transition: background 0.3s;
+  }
+
+  .progress-dot.done { background: var(--gold); }
+  .progress-dot.current { background: var(--gold-light); animation: pulse 1.2s ease infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .question-card {
+    background: rgba(26,107,107,0.12);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 16px;
+  }
+
+  .question-card .q-num {
+    font-size: 0.75rem;
+    color: var(--gold);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+
+  .question-card .q-text {
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.7;
+    margin-bottom: 4px;
+  }
+
+  .options {
+    display: grid;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .option-btn {
+    background: rgba(245,237,216,0.04);
+    border: 1px solid rgba(201,168,76,0.2);
+    color: var(--cream);
+    padding: 14px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 0.95rem;
+    text-align: right;
+    transition: all 0.25s;
+    line-height: 1.5;
+  }
+
+  .option-btn:not(.answered):hover {
+    background: rgba(201,168,76,0.1);
+    border-color: var(--gold);
+  }
+
+  .option-btn.correct {
+    background: rgba(34,197,94,0.15);
+    border-color: #22C55E;
+    color: #86EFAC;
+  }
+
+  .option-btn.wrong {
+    background: rgba(239,68,68,0.15);
+    border-color: #EF4444;
+    color: #FCA5A5;
+  }
+
+  .feedback {
+    padding: 14px 20px;
+    border-radius: 12px;
+    margin-top: 12px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    display: none;
+  }
+
+  .feedback.correct {
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: #86EFAC;
+    display: block;
+  }
+
+  .feedback.wrong {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #FCA5A5;
+    display: block;
+  }
+
+  .next-btn {
+    display: none;
+    width: 100%;
+    background: linear-gradient(135deg, var(--gold) 0%, #8B6914 100%);
+    border: none;
+    color: var(--dark);
+    padding: 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-top: 12px;
+    transition: opacity 0.2s;
+  }
+
+  .next-btn:hover { opacity: 0.9; }
+
+  /* Matching game */
+  .match-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+  .match-col-title {
+    text-align: center;
+    color: var(--gold);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .match-item {
+    background: rgba(26,107,107,0.15);
+    border: 2px solid rgba(201,168,76,0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-align: center;
+    transition: all 0.25s;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.4;
+  }
+
+  .match-item:hover { border-color: var(--gold); background: rgba(201,168,76,0.1); }
+  .match-item.selected { border-color: var(--gold-light); background: rgba(201,168,76,0.2); color: var(--gold-light); }
+  .match-item.matched { border-color: #22C55E; background: rgba(34,197,94,0.1); color: #86EFAC; cursor: default; }
+  .match-item.wrong-flash { border-color: #EF4444; background: rgba(239,68,68,0.15); }
+
+  .match-status {
+    text-align: center;
+    color: var(--gold);
+    margin: 16px 0;
+    font-size: 0.9rem;
+  }
+
+  /* Fill in blanks */
+  .fill-card {
+    background: rgba(26,107,107,0.12);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  .fill-sentence {
+    font-size: 1.1rem;
+    line-height: 2.2;
+    font-weight: 500;
+  }
+
+  .fill-input {
+    display: inline-block;
+    border: none;
+    border-bottom: 2px solid var(--gold);
+    background: transparent;
+    color: var(--gold-light);
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 1rem;
+    width: 120px;
+    text-align: center;
+    outline: none;
+    padding: 2px 8px;
+    margin: 0 6px;
+  }
+
+  .fill-input.correct { border-color: #22C55E; color: #86EFAC; }
+  .fill-input.wrong { border-color: #EF4444; color: #FCA5A5; }
+
+  .check-btn {
+    background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
+    border: 1px solid var(--teal);
+    color: var(--cream);
+    padding: 12px 32px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-top: 16px;
+    transition: all 0.2s;
+  }
+
+  .check-btn:hover { background: var(--teal); }
+
+  /* Drag/Landmark */
+  .landmark-game {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+  .landmark-card {
+    background: rgba(26,107,107,0.15);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 16px;
+    padding: 16px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s;
+    position: relative;
+  }
+
+  .landmark-card .lm-icon { font-size: 2.2rem; margin-bottom: 8px; }
+  .landmark-card .lm-name { font-size: 0.85rem; font-weight: 600; color: var(--cream); margin-bottom: 6px; }
+  .landmark-card .lm-desc { font-size: 0.72rem; color: rgba(245,237,216,0.4); }
+
+  .landmark-card.revealed {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.12);
+  }
+
+  .landmark-card .lm-fact {
+    display: none;
+    font-size: 0.78rem;
+    color: var(--gold-light);
+    line-height: 1.6;
+    margin-top: 8px;
+  }
+
+  .landmark-card.revealed .lm-fact { display: block; }
+  .landmark-card.revealed .lm-desc { display: none; }
+
+  /* Result screen */
+  .result-screen {
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .result-badge {
+    font-size: 5rem;
+    margin-bottom: 16px;
+  }
+
+  .result-screen h2 {
+    font-size: 2rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+
+  .result-screen p {
+    color: rgba(245,237,216,0.7);
+    font-size: 1rem;
+    margin-bottom: 30px;
+  }
+
+  .play-again-btn {
+    background: linear-gradient(135deg, var(--gold) 0%, #8B6914 100%);
+    border: none;
+    color: var(--dark);
+    padding: 14px 40px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    transition: transform 0.2s;
+  }
+
+  .play-again-btn:hover { transform: scale(1.05); }
+
+  .section-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--gold-light);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  @media (max-width: 560px) {
+    .menu-grid { grid-template-columns: 1fr; }
+    .landmark-game { grid-template-columns: 1fr 1fr; }
+    .match-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="ornament">✦ ✦ ✦</div>
+    <h1>اصفهان نصف جهان</h1>
+    <p class="subtitle">مطالعات اجتماعی · پایه ششم · درس ۱۱</p>
+  </header>
+
+  <!-- Score bar -->
+  <div class="scorebar">
+    <div class="score-item">
+      <div class="score-label">امتیاز</div>
+      <div class="score-value" id="totalScore">۰</div>
+    </div>
+    <div class="score-item">
+      <div class="score-label">بازی فعلی</div>
+      <div class="score-value" id="currentGame">—</div>
+    </div>
+    <div class="score-item">
+      <div class="score-label">ستاره</div>
+      <div class="score-value" id="stars">⭐</div>
+    </div>
+  </div>
+
+  <!-- Main Menu -->
+  <div class="section active" id="sec-menu">
+    <div class="menu-grid">
+      <div class="menu-card" onclick="startQuiz()">
+        <span class="icon">❓</span>
+        <h3>آزمون چندگزینه‌ای</h3>
+        <p>۱۰ سوال از محتوای درس</p>
+      </div>
+      <div class="menu-card" onclick="startMatch()">
+        <span class="icon">🔗</span>
+        <h3>جور کردن</h3>
+        <p>مکان‌ها را با توضیحاتشان جور کن</p>
+      </div>
+      <div class="menu-card" onclick="startFill()">
+        <span class="icon">✏️</span>
+        <h3>جاهای خالی</h3>
+        <p>جمله‌ها را کامل کن</p>
+      </div>
+      <div class="menu-card" onclick="startLandmarks()">
+        <span class="icon">🕌</span>
+        <h3>اماکن تاریخی</h3>
+        <p>با کلیک روی هر مکان بیشتر یاد بگیر</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz Section -->
+  <div class="section" id="sec-quiz">
+    <button class="back-btn" onclick="goHome()">→ بازگشت</button>
+    <div class="section-title">❓ آزمون چندگزینه‌ای</div>
+    <div class="quiz-progress" id="quizProgress"></div>
+    <div id="quizContent"></div>
+  </div>
+
+  <!-- Match Section -->
+  <div class="section" id="sec-match">
+    <button class="back-btn" onclick="goHome()">→ بازگشت</button>
+    <div class="section-title">🔗 جور کردن</div>
+    <div class="match-status" id="matchStatus">روی یک مکان از ستون راست کلیک کن، سپس توضیح مربوطه را از ستون چپ انتخاب کن</div>
+    <div class="match-grid">
+      <div>
+        <div class="match-col-title">📝 توضیح</div>
+        <div id="matchDescCol" style="display:grid;gap:10px;"></div>
+      </div>
+      <div>
+        <div class="match-col-title">🏛️ مکان / مفهوم</div>
+        <div id="matchTermCol" style="display:grid;gap:10px;"></div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:20px;">
+      <button class="check-btn" onclick="resetMatch()">🔄 شروع مجدد</button>
+    </div>
+  </div>
+
+  <!-- Fill Section -->
+  <div class="section" id="sec-fill">
+    <button class="back-btn" onclick="goHome()">→ بازگشت</button>
+    <div class="section-title">✏️ جاهای خالی را پر کن</div>
+    <div id="fillContent"></div>
+    <button class="check-btn" onclick="checkFill()">✅ بررسی پاسخ‌ها</button>
+    <div id="fillFeedback" style="margin-top:14px;"></div>
+  </div>
+
+  <!-- Landmarks Section -->
+  <div class="section" id="sec-landmarks">
+    <button class="back-btn" onclick="goHome()">→ بازگشت</button>
+    <div class="section-title">🕌 اماکن تاریخی اصفهان</div>
+    <p style="font-size:0.85rem;color:rgba(245,237,216,0.5);margin-bottom:16px;">روی هر مکان کلیک کن تا اطلاعات بیشتری بخوانی</p>
+    <div class="landmark-game" id="landmarkGrid"></div>
+  </div>
+
+</div>
+
+<script>
+// ============= DATA =============
+const quizQuestions = [
+  {
+    q: "اصفهان در کدام دوره به اوج شکوفایی خود رسید؟",
+    opts: ["دوره هخامنشی","دوره صفوی","دوره قاجار","دوره اشکانی"],
+    ans: 1,
+    explain: "اصفهان در دوره صفویه و به خصوص در زمان شاه عباس اول به اوج شکوفایی خود رسید و به پایتختی انتخاب شد."
+  },
+  {
+    q: "میدان نقش جهان توسط کدام پادشاه ساخته شد؟",
+    opts: ["شاه اسماعیل","شاه عباس اول","شاه طهماسب","نادر شاه"],
+    ans: 1,
+    explain: "میدان نقش جهان به فرمان شاه عباس اول ساخته شد و یکی از بزرگ‌ترین میدان‌های جهان است."
+  },
+  {
+    q: "عبارت 'اصفهان نصف جهان' بیانگر چه چیزی است؟",
+    opts: ["نیمی از مساحت ایران","شکوه، عظمت و زیبایی اصفهان","اینکه اصفهان در مرکز جهان است","جمعیت زیاد اصفهان"],
+    ans: 1,
+    explain: "این عبارت کنایه از شکوه، عظمت و زیبایی اصفهان است که گویی دیدن آن برابر با دیدن نیمی از دنیاست."
+  },
+  {
+    q: "مسجد جامع عباسی (مسجد امام) در کجا واقع است؟",
+    opts: ["خیابان چهارباغ","میدان نقش جهان","پل سی‌وسه پل","بازار قیصریه"],
+    ans: 1,
+    explain: "مسجد امام (مسجد جامع عباسی) در ضلع جنوبی میدان نقش جهان قرار دارد."
+  },
+  {
+    q: "کاخ عالی قاپو چه کاربردی داشت؟",
+    opts: ["محل اقامت علما","کاخ ورودی و محل حضور شاه برای تماشای مراسم","مدرسه علمیه","محل بازرگانان خارجی"],
+    ans: 1,
+    explain: "کاخ عالی‌قاپو دروازه ورودی کاخ‌های سلطنتی بود و شاه از طبقات بالای آن مراسم میدان را تماشا می‌کرد."
+  },
+  {
+    q: "پل خواجو در دوره کدام پادشاه ساخته شد؟",
+    opts: ["شاه عباس اول","شاه اسماعیل","شاه عباس دوم","شاه سلطان حسین"],
+    ans: 2,
+    explain: "پل خواجو در دوره شاه عباس دوم صفوی ساخته شد و هم پل بود و هم سد و هم مکانی برای تفریح."
+  },
+  {
+    q: "مسجد شیخ لطف‌الله که بر ساخت آن نظارت کرد؟",
+    opts: ["شاه عباس اول","شیخ لطف‌الله","اُستاد محمد رضا اصفهانی","صفی قلی‌خان"],
+    ans: 0,
+    explain: "مسجد شیخ لطف‌الله به فرمان شاه عباس اول ساخته شد و به نام پدر زن وی شیخ لطف‌الله نام‌گذاری شد."
+  },
+  {
+    q: "چهارباغ عباسی چه نوع فضایی بود؟",
+    opts: ["بازار تجاری","خیابانی با باغ‌های شاهی در دو طرف","محله مسکونی","قلعه دفاعی"],
+    ans: 1,
+    explain: "چهارباغ عباسی خیابانی بود با باغ‌های متعدد در دو طرف که به مرور محل تفریح مردم شد."
+  },
+  {
+    q: "اصفهان در دوره صفوی از نظر بازرگانی چه اهمیتی داشت؟",
+    opts: ["تنها صادرکننده فرش","مرکز تجارت ابریشم و صنایع دستی با ملل مختلف","بازار انحصاری ادویه","فقط تجارت داخلی"],
+    ans: 1,
+    explain: "اصفهان در دوره صفوی به مرکز مهم تجاری تبدیل شد و بازرگانان از سراسر جهان برای داد و ستد به آنجا می‌آمدند."
+  },
+  {
+    q: "کدام هنر در اصفهان دوره صفوی به اوج خود رسید؟",
+    opts: ["سفالگری","معماری، کاشیکاری و نگارگری","ذوب فلزات","سنگ‌تراشی"],
+    ans: 1,
+    explain: "در دوره صفوی هنرهایی مثل معماری، کاشیکاری و نگارگری به کمال رسیدند و آثار بی‌نظیری خلق شدند."
+  }
+];
+
+const matchData = [
+  { term: "میدان نقش جهان", desc: "یکی از بزرگ‌ترین میدان‌های تاریخی جهان به ثبت یونسکو رسیده" },
+  { term: "پل سی‌وسه پل", desc: "پل معروف اصفهان با ۳۳ دهانه روی رودخانه زاینده‌رود" },
+  { term: "مسجد امام", desc: "شاهکار معماری دوره صفوی با کاشیکاری آبی فیروزه‌ای" },
+  { term: "کاخ چهل ستون", desc: "کاخ پذیرایی با ۲۰ ستون چوبی که در آب انعکاس می‌یابد" },
+  { term: "بازار قیصریه", desc: "سردر ورودی بازار اصفهان در کنار میدان نقش جهان" },
+  { term: "مسجد شیخ لطف‌الله", desc: "مسجد بی‌مناره و بی‌صحن با گنبد یگانه در میدان نقش جهان" },
+];
+
+const fillSentences = [
+  { before: "اصفهان در دوره", blank: "صفوی", after: "به پایتختی انتخاب و به اوج شکوفایی رسید." },
+  { before: "میدان نقش جهان به فرمان شاه", blank: "عباس اول", after: "ساخته شد." },
+  { before: "عبارت اصفهان نصف جهان نشانه", blank: "شکوه و عظمت", after: "این شهر است." },
+  { before: "رودخانه اصلی اصفهان", blank: "زاینده‌رود", after: "نام دارد." },
+  { before: "مسجد امام یادگار دوره", blank: "صفویه", after: "است و در ضلع جنوبی میدان نقش جهان قرار دارد." },
+];
+
+const landmarks = [
+  { icon: "🕌", name: "مسجد امام", desc: "کلیک کن", fact: "این مسجد که قبلاً مسجد جامع عباسی نام داشت، با کاشی‌های آبی فیروزه‌ای خیره‌کننده در ضلع جنوبی میدان نقش جهان قرار دارد." },
+  { icon: "🏰", name: "کاخ عالی‌قاپو", desc: "کلیک کن", fact: "کاخ ۶ طبقه‌ای که شاه از آن مراسم میدان را تماشا می‌کرد. طبقه آخر آن مخصوص موسیقی بود و اتاق موسیقی با شکل‌های ظروف تزئین شده." },
+  { icon: "🌉", name: "پل سی‌وسه پل", desc: "کلیک کن", fact: "این پل ۲۹۷ متری با ۳۳ دهانه در دوره شاه عباس اول ساخته شد و هم پل و هم سد است." },
+  { icon: "🕍", name: "مسجد شیخ لطف‌الله", desc: "کلیک کن", fact: "مسجدی بی‌نظیر بدون مناره و صحن که گنبد آن با نور خورشید تغییر رنگ می‌دهد. این مسجد مخصوص زنان خاندان سلطنتی بود." },
+  { icon: "🏛️", name: "کاخ چهل ستون", desc: "کلیک کن", fact: "کاخی با ۲۰ ستون چوبی که در حوض آب انعکاس می‌یابد و چهل ستون به نظر می‌رسد. دیوارهای داخلی آن با نقاشی‌های تاریخی پوشیده شده." },
+  { icon: "🛍️", name: "بازار قیصریه", desc: "کلیک کن", fact: "یکی از قدیمی‌ترین بازارهای ایران که در کنار میدان نقش جهان قرار دارد و سردر زیبای آن با نقاشی‌های شکار تزئین شده." },
+];
+
+// ============= STATE =============
+let totalScore = 0;
+let quizIdx = 0;
+let quizAnswered = false;
+let quizScore = 0;
+let matchSelected = null;
+let matchDone = 0;
+
+function toFarsiNum(n) {
+  return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+}
+
+function updateScore() {
+  document.getElementById('totalScore').textContent = toFarsiNum(totalScore);
+  const s = totalScore >= 80 ? '⭐⭐⭐' : totalScore >= 40 ? '⭐⭐' : totalScore >= 10 ? '⭐' : '⭐';
+  document.getElementById('stars').textContent = s;
+}
+
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function goHome() {
+  showSection('sec-menu');
+  document.getElementById('currentGame').textContent = '—';
+}
+
+// ============= QUIZ =============
+function startQuiz() {
+  quizIdx = 0;
+  quizScore = 0;
+  showSection('sec-quiz');
+  document.getElementById('currentGame').textContent = 'آزمون';
+  renderQuestion();
+}
+
+function renderProgress() {
+  const prog = document.getElementById('quizProgress');
+  prog.innerHTML = quizQuestions.map((_, i) => 
+    `<div class="progress-dot ${i < quizIdx ? 'done' : i === quizIdx ? 'current' : ''}"></div>`
+  ).join('');
+}
+
+function renderQuestion() {
+  if (quizIdx >= quizQuestions.length) {
+    showQuizResult();
+    return;
+  }
+  quizAnswered = false;
+  renderProgress();
+  const q = quizQuestions[quizIdx];
+  document.getElementById('quizContent').innerHTML = `
+    <div class="question-card">
+      <div class="q-num">سوال ${toFarsiNum(quizIdx + 1)} از ${toFarsiNum(quizQuestions.length)}</div>
+      <div class="q-text">${q.q}</div>
+    </div>
+    <div class="options" id="optionsContainer">
+      ${q.opts.map((o, i) => `<button class="option-btn" onclick="answerQuiz(${i})">${o}</button>`).join('')}
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">سوال بعدی ←</button>
+  `;
+}
+
+function answerQuiz(idx) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  const q = quizQuestions[quizIdx];
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(b => { b.classList.add('answered'); b.style.cursor = 'default'; });
+  const fb = document.getElementById('feedback');
+  if (idx === q.ans) {
+    btns[idx].classList.add('correct');
+    fb.className = 'feedback correct';
+    fb.textContent = '✅ آفرین! ' + q.explain;
+    quizScore++;
+    totalScore += 5;
+    updateScore();
+  } else {
+    btns[idx].classList.add('wrong');
+    btns[q.ans].classList.add('correct');
+    fb.className = 'feedback wrong';
+    fb.textContent = '❌ اشتباه! پاسخ درست: ' + q.opts[q.ans] + '. ' + q.explain;
+  }
+  document.getElementById('nextBtn').style.display = 'block';
+}
+
+function nextQuestion() {
+  quizIdx++;
+  renderQuestion();
+}
+
+function showQuizResult() {
+  const pct = Math.round(quizScore / quizQuestions.length * 100);
+  const emoji = pct >= 80 ? '🏆' : pct >= 60 ? '🎉' : pct >= 40 ? '👍' : '📚';
+  document.getElementById('quizContent').innerHTML = `
+    <div class="result-screen">
+      <div class="result-badge">${emoji}</div>
+      <h2>نتیجه آزمون</h2>
+      <p>${toFarsiNum(quizScore)} از ${toFarsiNum(quizQuestions.length)} سوال درست · ${toFarsiNum(pct)}٪</p>
+      <button class="play-again-btn" onclick="startQuiz()">🔄 دوباره بازی کن</button>
+    </div>
+  `;
+}
+
+// ============= MATCH =============
+function startMatch() {
+  matchSelected = null;
+  matchDone = 0;
+  showSection('sec-match');
+  document.getElementById('currentGame').textContent = 'جور کردن';
+  renderMatch();
+}
+
+function renderMatch() {
+  const shuffledTerms = [...matchData].sort(() => Math.random() - 0.5);
+  const shuffledDescs = [...matchData].sort(() => Math.random() - 0.5);
+
+  const termCol = document.getElementById('matchTermCol');
+  const descCol = document.getElementById('matchDescCol');
+
+  termCol.innerHTML = shuffledTerms.map((m, i) =>
+    `<div class="match-item" id="term-${i}" data-val="${m.term}" onclick="selectMatch('term','${m.term}',${i})">${m.term}</div>`
+  ).join('');
+
+  descCol.innerHTML = shuffledDescs.map((m, i) =>
+    `<div class="match-item" id="desc-${i}" data-val="${m.term}" onclick="selectMatch('desc','${m.term}',${i})">${m.desc}</div>`
+  ).join('');
+}
+
+let matchSelType = null;
+let matchSelVal = null;
+let matchSelIdx = null;
+
+function selectMatch(type, val, idx) {
+  const el = document.getElementById(`${type}-${idx}`);
+  if (el.classList.contains('matched')) return;
+
+  if (matchSelType === null) {
+    // first selection
+    matchSelType = type;
+    matchSelVal = val;
+    matchSelIdx = idx;
+    el.classList.add('selected');
+    document.getElementById('matchStatus').textContent = 'حالا جفتش را پیدا کن';
+  } else {
+    // second selection
+    const prevEl = document.getElementById(`${matchSelType}-${matchSelIdx}`);
+    if (matchSelType === type) {
+      prevEl.classList.remove('selected');
+      matchSelType = type;
+      matchSelVal = val;
+      matchSelIdx = idx;
+      el.classList.add('selected');
+      return;
+    }
+    prevEl.classList.remove('selected');
+
+    if (matchSelVal === val) {
+      // correct!
+      prevEl.classList.add('matched');
+      el.classList.add('matched');
+      matchDone++;
+      totalScore += 5;
+      updateScore();
+      if (matchDone === matchData.length) {
+        document.getElementById('matchStatus').textContent = '🎉 عالی! همه را درست جور کردی!';
+      } else {
+        document.getElementById('matchStatus').textContent = `✅ درست! ${toFarsiNum(matchData.length - matchDone)} جفت باقی مانده`;
+      }
+    } else {
+      // wrong
+      prevEl.classList.add('wrong-flash');
+      el.classList.add('wrong-flash');
+      document.getElementById('matchStatus').textContent = '❌ اشتباه! دوباره امتحان کن';
+      setTimeout(() => {
+        prevEl.classList.remove('wrong-flash');
+        el.classList.remove('wrong-flash');
+        document.getElementById('matchStatus').textContent = 'دوباره انتخاب کن';
+      }, 700);
+    }
+    matchSelType = null;
+    matchSelVal = null;
+    matchSelIdx = null;
+  }
+}
+
+function resetMatch() { startMatch(); }
+
+// ============= FILL =============
+function startFill() {
+  showSection('sec-fill');
+  document.getElementById('currentGame').textContent = 'جاهای خالی';
+  const cont = document.getElementById('fillContent');
+  cont.innerHTML = fillSentences.map((s, i) => `
+    <div class="fill-card">
+      <div class="fill-sentence">
+        ${s.before}
+        <input class="fill-input" id="fill-${i}" type="text" placeholder="؟؟؟" autocomplete="off" />
+        ${s.after}
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('fillFeedback').innerHTML = '';
+}
+
+function checkFill() {
+  let correct = 0;
+  fillSentences.forEach((s, i) => {
+    const inp = document.getElementById(`fill-${i}`);
+    const val = inp.value.trim();
+    const accepted = s.blank.split('/');
+    if (accepted.some(a => val === a)) {
+      inp.classList.remove('wrong');
+      inp.classList.add('correct');
+      correct++;
+    } else {
+      inp.classList.remove('correct');
+      inp.classList.add('wrong');
+      inp.placeholder = s.blank;
+    }
+  });
+  const pct = Math.round(correct / fillSentences.length * 100);
+  totalScore += correct * 4;
+  updateScore();
+  document.getElementById('fillFeedback').innerHTML = `
+    <div class="feedback ${correct === fillSentences.length ? 'correct' : 'wrong'}">
+      ${correct === fillSentences.length ? '✅ عالی! همه را درست نوشتی!' : `✏️ ${toFarsiNum(correct)} از ${toFarsiNum(fillSentences.length)} درست. موارد نادرست به رنگ قرمز مشخص شدند.`}
+    </div>`;
+}
+
+// ============= LANDMARKS =============
+function startLandmarks() {
+  showSection('sec-landmarks');
+  document.getElementById('currentGame').textContent = 'اماکن';
+  const grid = document.getElementById('landmarkGrid');
+  grid.innerHTML = landmarks.map((lm, i) => `
+    <div class="landmark-card" id="lm-${i}" onclick="revealLandmark(${i})">
+      <div class="lm-icon">${lm.icon}</div>
+      <div class="lm-name">${lm.name}</div>
+      <div class="lm-desc">${lm.desc}</div>
+      <div class="lm-fact">${lm.fact}</div>
+    </div>
+  `).join('');
+}
+
+function revealLandmark(i) {
+  const card = document.getElementById(`lm-${i}`);
+  if (!card.classList.contains('revealed')) {
+    card.classList.add('revealed');
+    totalScore += 3;
+    updateScore();
+  }
+}
+
+// Init
+updateScore();
+</script>
+</body>
+</html>
